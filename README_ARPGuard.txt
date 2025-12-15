@@ -129,4 +129,8 @@ Canvas-ready files:
 
 References
 ----------
-[1] D. C. Plummer, “An Ethernet Address Resolution Protocol,” RFC 826, Nov. 1982.
+[1]	D. C. Plummer, “An Ethernet Address Resolution Protocol,” RFC 826, IETF, Nov. 1982.
+[2]	K. Kent and M. Souppaya, “Guide to Computer Security Log Management,” NIST SP 800-92, Sept. 2006.
+[3]	Center for Internet Security, “CIS Controls v8,” 2021.
+[4]	Wireshark Foundation, “Wireshark User’s Guide,” latest ed.
+[5]	S. Cheshire, “IPv4 Address Conflict Detection,” RFC 5227, IETF, July 2008.
