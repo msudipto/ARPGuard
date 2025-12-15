@@ -1,6 +1,16 @@
 ARPGuard — Detecting ARP Spoofing in a Tactile, Hands-On Lab
 ==============================================================
 
+Public repository: https://github.com/msudipto/ARPGuard
+
+Quickstart (CLI):
+  1) pip install -r requirements.txt
+  2) python code/arpguard_core.py pcaps/benign_arp.pcap
+  3) python code/arpguard_core.py pcaps/arp_spoof_attack.pcap
+
+Expected: benign produces 0 anomaly events; attack produces >= 1 anomaly event.
+
+
 1. Overview
 -----------
 ARPGuard is a compact, classroom-friendly toolchain that helps learners observe and detect ARP spoofing

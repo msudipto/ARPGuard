@@ -1,4 +1,54 @@
 {
+  "tool": {
+    "name": "ARPGuard",
+    "module": "arpguard_core.py",
+    "schema_version": "1.1",
+    "generated_utc": "2025-12-15T03:22:45.616909Z"
+  },
+  "pcap": {
+    "path": "arp_spoof_attack.pcap",
+    "size_bytes": 488,
+    "sha256": "3ca9ee2594188ea4efd37888589bc04c971a695845b57f13cfe290f25b17d446",
+    "packet_count_total": 8,
+    "time_start_s": 1.0,
+    "time_end_s": 2.949999,
+    "duration_s": 1.949999,
+    "packet_count_arp": 8
+  },
+  "summary": {
+    "anomaly_event_count": 2,
+    "unique_ips_observed": 2,
+    "unique_macs_observed": 3,
+    "conflict_ip_count": 1,
+    "anomaly_types": {
+      "IP_MAC_CONFLICT": 2
+    }
+  },
+  "observations": {
+    "arp_packets": 8,
+    "arp_requests": 2,
+    "arp_replies": 6,
+    "gratuitous_arp": 0,
+    "unsolicited_replies": 0,
+    "bindings": {
+      "192.168.1.10": [
+        "00:11:22:33:44:10"
+      ],
+      "192.168.1.1": [
+        "00:aa:bb:cc:dd:01",
+        "de:ad:be:ef:00:66"
+      ]
+    },
+    "conflicts": [
+      {
+        "ip": "192.168.1.1",
+        "macs": [
+          "00:aa:bb:cc:dd:01",
+          "de:ad:be:ef:00:66"
+        ]
+      }
+    ]
+  },
   "hosts_ip_to_mac": {
     "192.168.1.1": "00:aa:bb:cc:dd:01",
     "192.168.1.10": "00:11:22:33:44:10"

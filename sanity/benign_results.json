@@ -1,4 +1,43 @@
 {
+  "tool": {
+    "name": "ARPGuard",
+    "module": "arpguard_core.py",
+    "schema_version": "1.1",
+    "generated_utc": "2025-12-15T03:22:45.465039Z"
+  },
+  "pcap": {
+    "path": "benign_arp.pcap",
+    "size_bytes": 256,
+    "sha256": "067c48f055fc3bde681e5e7bb6c8e299cbb35bda318e24f22479756c19d0e4ef",
+    "packet_count_total": 4,
+    "time_start_s": 1.0,
+    "time_end_s": 2.2,
+    "duration_s": 1.2000000000000002,
+    "packet_count_arp": 4
+  },
+  "summary": {
+    "anomaly_event_count": 0,
+    "unique_ips_observed": 2,
+    "unique_macs_observed": 2,
+    "conflict_ip_count": 0,
+    "anomaly_types": {}
+  },
+  "observations": {
+    "arp_packets": 4,
+    "arp_requests": 2,
+    "arp_replies": 2,
+    "gratuitous_arp": 0,
+    "unsolicited_replies": 0,
+    "bindings": {
+      "192.168.1.10": [
+        "00:11:22:33:44:10"
+      ],
+      "192.168.1.1": [
+        "00:aa:bb:cc:dd:01"
+      ]
+    },
+    "conflicts": []
+  },
   "hosts_ip_to_mac": {
     "192.168.1.1": "00:aa:bb:cc:dd:01",
     "192.168.1.10": "00:11:22:33:44:10"

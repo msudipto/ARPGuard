@@ -1,113 +1,155 @@
 #!/usr/bin/env python3
 """
 generate_figures.py
-Generate lightweight, self-contained figure assets for the ARPGuard project.
 
-The project rubric often expects "figures/screenshots" to be included as supporting materials.
-This script produces:
-- A simple network topology diagram (Host, Gateway, Attacker).
-- A "benign analysis" snapshot and an "attack analysis" snapshot (rendered as images).
+What it does
+------------
+It generates lightweight, self-contained figure assets for the ARPGuard project so the submission
+includes reproducible "figures/screenshots" without requiring manual GUI screenshots.
 
-These are designed as safe placeholders and can be replaced by real screenshots
-from Wireshark/terminal output in a live lab environment.
+It produces:
+1) figures/topology_diagram.png
+2) figures/benign_analysis_snapshot.png
+3) figures/attack_analysis_snapshot.png
+
+How it works
+------------
+It runs ARPGuard's offline analyzer on the included benign and attack PCAPs and then renders short,
+human-readable summaries into PNG images using Matplotlib.
+
+Note
+----
+These are designed as safe placeholders. In a live lab, the learner can replace them with real
+Wireshark screenshots and terminal outputs if desired.
 """
 
 from __future__ import annotations
 
 import argparse
-from pathlib import Path
-from typing import List
+import json
+import os
+import subprocess
 import sys
+from pathlib import Path
+from typing import Dict, Any
 
+import matplotlib
+matplotlib.use("Agg")  # headless-safe
 import matplotlib.pyplot as plt
 
-# Allow importing from ../code
-ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "code"))
 
-from arpguard_core import analyze_pcap  # noqa: E402
+def _run_core(core_path: Path, pcap_path: Path) -> Dict[str, Any]:
+    """It runs arpguard_core.py and returns the parsed JSON dict."""
+    cmd = [sys.executable, str(core_path), str(pcap_path)]
+    res = subprocess.run(cmd, capture_output=True, text=True)
+    if res.returncode != 0:
+        raise RuntimeError(f"arpguard_core.py failed for {pcap_path}: {res.stderr.strip()}")
+    try:
+        return json.loads(res.stdout)
+    except json.JSONDecodeError as e:
+        raise RuntimeError(f"Could not parse JSON output from arpguard_core.py: {e}")
 
 
-def _save_text_snapshot(out_path: Path, title: str, lines: List[str]) -> None:
-    fig = plt.figure(figsize=(10, 6))
-    plt.axis("off")
-    plt.text(0.01, 0.98, title, fontsize=16, va="top")
-    plt.text(0.01, 0.92, "\n".join(lines), fontsize=11, va="top", family="monospace")
+def _draw_topology(out_path: Path) -> None:
+    fig, ax = plt.subplots(figsize=(9, 4))
+    ax.set_axis_off()
+
+    def box(x, y, w, h, title, subtitle):
+        ax.add_patch(plt.Rectangle((x, y), w, h, fill=False, linewidth=2))
+        ax.text(x + w / 2, y + h * 0.62, title, ha="center", va="center", fontsize=13, fontweight="bold")
+        ax.text(x + w / 2, y + h * 0.30, subtitle, ha="center", va="center", fontsize=10)
+
+    box(0.08, 0.35, 0.25, 0.30, "Host", "Victim workstation")
+    box(0.38, 0.35, 0.25, 0.30, "Gateway", "Default router")
+    box(0.68, 0.35, 0.25, 0.30, "Attacker", "Spoofing endpoint")
+
+    ax.annotate("", xy=(0.38, 0.50), xytext=(0.33, 0.50), arrowprops=dict(arrowstyle="->"))
+    ax.text(0.355, 0.56, "ARP who-has", ha="center", fontsize=9)
+
+    ax.annotate("", xy=(0.63, 0.47), xytext=(0.68, 0.47), arrowprops=dict(arrowstyle="<-"))  # spoofed replies
+    ax.text(0.655, 0.40, "Spoofed is-at", ha="center", fontsize=9)
+
     fig.tight_layout()
-    fig.savefig(out_path, dpi=200, bbox_inches="tight")
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(out_path, dpi=220, bbox_inches="tight")
     plt.close(fig)
 
 
-def topology(out_path: Path) -> None:
-    fig = plt.figure(figsize=(10, 4))
-    ax = plt.gca()
-    ax.axis("off")
+def _draw_snapshot(title: str, result: Dict[str, Any], out_path: Path) -> None:
+    s = result.get("summary", {})
+    p = result.get("pcap", {})
+    events = result.get("events", [])
 
-    nodes = {
-        "Host\n192.168.1.10\n00:11:22:33:44:10": (0.15, 0.5),
-        "Gateway\n192.168.1.1\n00:aa:bb:cc:dd:01": (0.5, 0.5),
-        "Attacker\n192.168.1.66\nde:ad:be:ef:00:66": (0.85, 0.5),
-    }
+    lines = [
+        title,
+        "",
+        f"PCAP packets: {p.get('packet_count', 'N/A')} (ARP: {p.get('arp_packet_count', 'N/A')})",
+        f"Time window: {p.get('time_start_s', 0.0):.3f}s to {p.get('time_end_s', 0.0):.3f}s",
+        "",
+        "Summary:",
+        f"  anomaly_event_count   : {s.get('anomaly_event_count', 'N/A')}",
+        f"  ip_mac_conflict_count : {s.get('ip_mac_conflict_count', 'N/A')}",
+        f"  arp_requests/replies  : {s.get('arp_requests', 'N/A')}/{s.get('arp_replies', 'N/A')}",
+        f"  gratuitous_arp        : {s.get('gratuitous_arp', 'N/A')}",
+        f"  unsolicited_replies   : {s.get('unsolicited_replies', 'N/A')}",
+        "",
+        "Top anomaly (if any):",
+    ]
 
-    for label, (x, y) in nodes.items():
-        ax.text(x, y, label, ha="center", va="center",
-                bbox=dict(boxstyle="round,pad=0.5", fc="white", ec="black"))
+    if events:
+        e0 = events[0]
+        lines += [
+            f"  type     : {e0.get('event_type')}",
+            f"  severity : {e0.get('severity')}",
+            f"  ip       : {e0.get('ip')}",
+            f"  old->new : {e0.get('old_mac')} -> {e0.get('new_mac')}",
+        ]
+    else:
+        lines += ["  (none)"]
 
-    ax.annotate("", xy=(0.42, 0.52), xytext=(0.23, 0.52), arrowprops=dict(arrowstyle="->"))
-    ax.text(0.32, 0.57, "ARP who-has / is-at", ha="center")
-
-    ax.annotate("", xy=(0.58, 0.48), xytext=(0.77, 0.48), arrowprops=dict(arrowstyle="<-"))
-    ax.text(0.68, 0.41, "Spoofed is-at", ha="center")
-
+    fig, ax = plt.subplots(figsize=(10, 5))
+    ax.set_axis_off()
+    ax.text(0.02, 0.98, "\n".join(lines), va="top", family="monospace", fontsize=11)
     fig.tight_layout()
-    fig.savefig(out_path, dpi=200, bbox_inches="tight")
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(out_path, dpi=220, bbox_inches="tight")
     plt.close(fig)
 
 
-def main() -> None:
+def main() -> int:
     parser = argparse.ArgumentParser(description="Generate ARPGuard figure assets")
     parser.add_argument("--pcaps-dir", default="pcaps", help="Directory containing benign_arp.pcap and arp_spoof_attack.pcap")
-    parser.add_argument("--out-dir", default="figures", help="Output directory")
+    parser.add_argument("--code-dir", default="code", help="Directory containing arpguard_core.py")
+    parser.add_argument("--out-dir", default="figures", help="Output directory for generated figures")
     args = parser.parse_args()
 
-    pcaps_dir = Path(args.pcaps_dir)
-    out_dir = Path(args.out_dir)
-    out_dir.mkdir(parents=True, exist_ok=True)
+    root = Path(__file__).resolve().parents[1]
+    pcaps_dir = (root / args.pcaps_dir).resolve()
+    code_dir = (root / args.code_dir).resolve()
+    out_dir = (root / args.out_dir).resolve()
 
-    benign_pcap = pcaps_dir / "benign_arp.pcap"
-    attack_pcap = pcaps_dir / "arp_spoof_attack.pcap"
+    core_path = code_dir / "arpguard_core.py"
+    benign = pcaps_dir / "benign_arp.pcap"
+    attack = pcaps_dir / "arp_spoof_attack.pcap"
 
-    res_benign = analyze_pcap(str(benign_pcap))
-    res_attack = analyze_pcap(str(attack_pcap))
+    if not core_path.exists():
+        raise FileNotFoundError(f"Missing: {core_path}")
+    if not benign.exists():
+        raise FileNotFoundError(f"Missing: {benign}")
+    if not attack.exists():
+        raise FileNotFoundError(f"Missing: {attack}")
 
-    topology(out_dir / "arpguard_topology.png")
+    _draw_topology(out_dir / "topology_diagram.png")
 
-    benign_lines = [
-        f"PCAP: {benign_pcap.name}",
-        f"Observed hosts: {len(res_benign.hosts_ip_to_mac)}",
-        f"Events: {len(res_benign.events)}",
-        "",
-        "Host Table (IP -> MAC):",
-        *[f"  {ip:15}  {mac}" for ip, mac in res_benign.hosts_ip_to_mac.items()],
-        "",
-        "Alerts:",
-        "  (none detected)",
-    ]
-    _save_text_snapshot(out_dir / "benign_analysis_snapshot.png", "ARPGuard Snapshot (Benign)", benign_lines)
+    benign_res = _run_core(core_path, benign)
+    attack_res = _run_core(core_path, attack)
 
-    attack_lines = [
-        f"PCAP: {attack_pcap.name}",
-        f"Observed hosts: {len(res_attack.hosts_ip_to_mac)}",
-        f"Events: {len(res_attack.events)}",
-        "",
-        "Top Alerts:",
-        *[f"  [{e.severity}] {e.event_type}: {e.details}" for e in res_attack.events[:8]],
-        "",
-        "Host Table (IP -> MAC) at end of capture:",
-        *[f"  {ip:15}  {mac}" for ip, mac in res_attack.hosts_ip_to_mac.items()],
-    ]
-    _save_text_snapshot(out_dir / "attack_analysis_snapshot.png", "ARPGuard Snapshot (Attack)", attack_lines)
+    _draw_snapshot("BENIGN PCAP: Analysis Snapshot", benign_res, out_dir / "benign_analysis_snapshot.png")
+    _draw_snapshot("ATTACK PCAP: Analysis Snapshot", attack_res, out_dir / "attack_analysis_snapshot.png")
+
+    print(f"[generate_figures] Wrote figures to: {out_dir}")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

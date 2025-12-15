@@ -1,45 +1,20 @@
 ARPGuard Sanity Check Report
 ==========================
 
-Environment:
-- Python: 3.11.2
-- Platform: linux
+Date (UTC): 2025-12-15T03:23:15.872403Z
 
-Inputs:
-- benign PCAP : pcaps/benign_arp.pcap
-- attack PCAP : pcaps/arp_spoof_attack.pcap
-
-Expected behavior:
-- benign PCAP should produce 0 anomaly events
-- attack PCAP should produce >= 1 anomaly event (IP_MAC_CONFLICT and/or other)
+Commands:
+- python code/arpguard_core.py pcaps/benign_arp.pcap
+- python code/arpguard_core.py pcaps/arp_spoof_attack.pcap
 
 Observed:
-- benign events: 0
-- attack events: 2
+- benign anomaly_event_count: 0
+- attack  anomaly_event_count: 2
+- attack  anomaly_types: {
+  "IP_MAC_CONFLICT": 2
+}
 
-Attack events (first 5):
-[
-  {
-    "ts": 2.2,
-    "event_type": "IP_MAC_CONFLICT",
-    "severity": "HIGH",
-    "ip": "192.168.1.1",
-    "mac": null,
-    "old_mac": "00:aa:bb:cc:dd:01",
-    "new_mac": "de:ad:be:ef:00:66",
-    "details": "Observed 192.168.1.1 map to 00:aa:bb:cc:dd:01 then de:ad:be:ef:00:66. Potential ARP spoof/poisoning."
-  },
-  {
-    "ts": 2.949999,
-    "event_type": "IP_MAC_CONFLICT",
-    "severity": "HIGH",
-    "ip": "192.168.1.1",
-    "mac": null,
-    "old_mac": "de:ad:be:ef:00:66",
-    "new_mac": "00:aa:bb:cc:dd:01",
-    "details": "Observed 192.168.1.1 map to de:ad:be:ef:00:66 then 00:aa:bb:cc:dd:01. Potential ARP spoof/poisoning."
-  }
-]
+PASS criteria:
+- benign == 0 AND attack >= 1
 
-Result:
-- PASS (benign=0 and attack>=1) = True
+PASS = True

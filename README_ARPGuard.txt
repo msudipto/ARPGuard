@@ -75,7 +75,7 @@ B) Run a demo analysis on both captures:
 
 C) Analyze a PCAP and write JSON output:
 
-  python code/arpguard_core.py pcaps/arp_spoof_attack.pcap --json sanity/attack_results.json
+  python code/arpguard_core.py pcaps/arp_spoof_attack.pcap --json sanity/attack_results.json --pretty
 
 6. Quickstart (Web Dashboard)
 -----------------------------
@@ -97,14 +97,28 @@ To regenerate the included figures after generating PCAPs:
   python scripts/generate_figures.py --pcaps-dir pcaps --out-dir figures
 
 8. Submission Notes (Canvas vs. GitHub)
----------------------------------------
-- Auxiliary files are intended to be hosted publicly on GitHub (this repository).
-- Appendices in the final write-up should remain short outlines; full materials are provided as separate files here.
-- If the rubric requires PDFs for text documents, use the docs_pdf/ versions (already included in this package).
+----------------------------------
+It is structured so that Canvas and GitHub submissions remain unambiguous:
 
-Important: A ZIP package is convenient for uploading to GitHub, but many course LMS workflows require uploading
-individual files rather than a compressed archive. Follow the rubric’s submission instructions for Canvas.
+- GitHub (public): it hosts the full auxiliary package (scripts, PCAPs, figures, PDFs, and doc templates).
+- Canvas (LMS): it uploads only the files the rubric explicitly permits (typically PDF/TXT), without ZIP archives.
 
-9. References
--------------
+Canvas-ready files
+------------------
+The canvas_upload/ directory is a ready-to-upload bundle (after unzipping locally). It contains:
+- PDFs for the text materials (Project Overview, Lab Handout, Facilitator Notes, Quiz + Answer Key).
+- Plain-text copies of the primary Python scripts (arpguard_core.txt, arpguard_lab_tools.txt,
+  arpguard_web_dashboard.txt) and requirements.txt.
+
+Important rubric alignment
+--------------------------
+- It does not submit ZIP archives to Canvas. If it is using a ZIP for transport, it unzips locally and uploads
+  the individual files.
+- If a GitHub/YouTube link is provided, it still follows the rubric’s rule that required materials must be
+  accessible to the grader without additional renaming or reconstruction.
+- If the project includes any video/audio, it submits the actual media file(s) to Canvas in the allowed formats,
+  rather than relying only on an external link.
+
+References
+----------
 [1] D. C. Plummer, “An Ethernet Address Resolution Protocol,” RFC 826, Nov. 1982.

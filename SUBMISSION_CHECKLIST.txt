@@ -1,0 +1,20 @@
+CYBSC/CPR E 4300/5300 — ARPGuard Final Submission Checklist
+=====================================================
+
+GitHub repository (public):
+- https://github.com/msudipto/ARPGuard
+
+This package includes only the final required artifacts + documentation.
+
+Included:
+- code/                     (arpguard_core.py, arpguard_lab_tools.py, arpguard_web_dashboard.py)
+- requirements.txt
+- pcaps/                    (benign_arp.pcap, arp_spoof_attack.pcap)
+- figures/                  (screenshots/figures + ARPGuard_Figures.pdf)
+- docs_pdf/                 (Project Overview, Lab Handout, Facilitator Notes, Quiz + Answer Key)
+- sanity/                   (benign_results.json, attack_results.json, SANITY_CHECK_REPORT.txt)
+- canvas_upload/            (Canvas-ready .txt code copies; unzip locally and upload files individually)
+
+Notes:
+- Canvas typically requires individual file uploads (not ZIP). Use canvas_upload/ for convenience.
+
