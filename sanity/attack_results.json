@@ -1,0 +1,39 @@
+{
+  "hosts_ip_to_mac": {
+    "192.168.1.1": "00:aa:bb:cc:dd:01",
+    "192.168.1.10": "00:11:22:33:44:10"
+  },
+  "hosts_mac_to_ips": {
+    "00:11:22:33:44:10": [
+      "192.168.1.10"
+    ],
+    "00:aa:bb:cc:dd:01": [
+      "192.168.1.1"
+    ],
+    "de:ad:be:ef:00:66": [
+      "192.168.1.1"
+    ]
+  },
+  "events": [
+    {
+      "ts": 2.2,
+      "event_type": "IP_MAC_CONFLICT",
+      "severity": "HIGH",
+      "ip": "192.168.1.1",
+      "mac": null,
+      "old_mac": "00:aa:bb:cc:dd:01",
+      "new_mac": "de:ad:be:ef:00:66",
+      "details": "Observed 192.168.1.1 map to 00:aa:bb:cc:dd:01 then de:ad:be:ef:00:66. Potential ARP spoof/poisoning."
+    },
+    {
+      "ts": 2.949999,
+      "event_type": "IP_MAC_CONFLICT",
+      "severity": "HIGH",
+      "ip": "192.168.1.1",
+      "mac": null,
+      "old_mac": "de:ad:be:ef:00:66",
+      "new_mac": "00:aa:bb:cc:dd:01",
+      "details": "Observed 192.168.1.1 map to de:ad:be:ef:00:66 then 00:aa:bb:cc:dd:01. Potential ARP spoof/poisoning."
+    }
+  ]
+}
