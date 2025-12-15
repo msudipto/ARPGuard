@@ -1,10 +1,13 @@
 ARPGuard — Detecting ARP Spoofing in a Tactile, Hands-On Lab
 ==============================================================
 
+Public repository (auxiliary files + runnable code):
+  https://github.com/msudipto/ARPGuard
+
 1. Overview
 -----------
 ARPGuard is a compact, classroom-friendly toolchain that helps learners observe and detect ARP spoofing
-(ARP cache poisoning) using packet captures. The project pairs a small analyzer (ARPGuard core) with guided
+(ARP cache poisoning) using packet captures (PCAPs). It pairs a small analyzer (ARPGuard Core) with guided
 teaching materials (lab handout, facilitator notes, and a quiz with answers + justification).
 
 The intended teaching arc is:
@@ -16,10 +19,28 @@ The intended teaching arc is:
 ----------------------
 After completing the lab, a learner should be able to:
 - Explain ARP’s role at the L2/L3 boundary and why it is vulnerable to spoofing.
-- Identify ARP spoofing indicators in traffic traces (e.g., one IP mapping to multiple MACs).
+- Identify ARP spoofing indicators in traces (e.g., one IP mapping to multiple MACs, repeated MAC flips).
 - Describe mitigations (static ARP, DHCP snooping + DAI, VLAN segmentation) and map them to defense-in-depth.
 
-3. Repository Layout
+3. Quickstart (CLI) — Grader-Friendly
+------------------------------------
+A) Install dependencies (recommended: virtual environment)
+
+  python -m venv .venv
+  source .venv/bin/activate     (macOS/Linux)
+  .venv\Scripts\activate      (Windows PowerShell)
+  pip install -r requirements.txt
+
+B) Analyze the included PCAPs
+
+  python code/arpguard_core.py pcaps/benign_arp.pcap
+  python code/arpguard_core.py pcaps/arp_spoof_attack.pcap
+
+Expected behavior:
+- benign produces 0 anomaly events
+- attack produces >= 1 anomaly event (typically IP<->MAC conflict)
+
+4. Repository Layout
 --------------------
 code/
   arpguard_core.py              Core PCAP analyzer (heuristics + JSON output)
@@ -33,52 +54,49 @@ docs/
   ARPGuard_Quiz_and_AnswerKey.txt
 
 docs_pdf/
-  PDF versions of the text materials for submission where PDFs are required.
+  PDF versions of the text materials (use if the rubric requires PDFs)
 
 pcaps/
   benign_arp.pcap               Benign ARP exchange (consistent mapping)
   arp_spoof_attack.pcap         Controlled spoofing pattern (gateway IP claimed by attacker MAC)
 
 figures/
-  arpguard_topology.png
-  benign_analysis_snapshot.png
-  attack_analysis_snapshot.png
+  Generated screenshots/figures + ARPGuard_Figures.pdf
 
-reports/
-  CYBSC5300_FinalReflection_msudipto.docx
-  ARPGuard_Appendices_Outline.docx
+scripts/
+  generate_figures.py           Regenerates figures from analyzer outputs
 
-milestones/
-  Prior submissions / reference PDFs (proposal and research & content development).
+sanity/
+  SANITY_CHECK_REPORT.txt       Deterministic PASS/FAIL evidence (benign=0, attack>=1)
+  benign_results.json
+  attack_results.json
 
-4. Installation
----------------
-Create a virtual environment (recommended) and install dependencies:
+canvas_upload/
+  Canvas-ready bundle (after unzipping locally):
+  - .txt copies of main code files
+  - requirements.txt
+  - teaching-material PDFs
 
-  python -m venv .venv
-  source .venv/bin/activate     (macOS/Linux)
-  .venv\Scripts\activate        (Windows PowerShell)
-  pip install -r requirements.txt
-
-Note: ARPGuard can parse classic PCAP (Ethernet) using only the standard library. If Scapy is installed in a
-given environment, ARPGuard can optionally use it, but Scapy is not required to run the core analyzer.
-
-5. Quickstart (Command-Line)
-----------------------------
-A) Generate the PCAPs:
+5. Running ARPGuard (Command-Line)
+----------------------------------
+A) (Optional) Generate PCAPs
 
   python code/arpguard_lab_tools.py generate --out-dir pcaps
 
-B) Run a demo analysis on both captures:
+B) Run a one-command demo analysis over both captures
 
   python code/arpguard_lab_tools.py demo --out-dir pcaps
 
-C) Analyze a PCAP and write JSON output:
+C) Analyze a PCAP and write JSON output (recommended for reproducibility)
 
   python code/arpguard_core.py pcaps/arp_spoof_attack.pcap --json sanity/attack_results.json --pretty
 
-6. Quickstart (Web Dashboard)
------------------------------
+Output notes:
+- The analyzer emits JSON that includes: events (alerts), summary counters, PCAP metadata (hash/size),
+  and observed IP<->MAC bindings. This makes evaluation deterministic.
+
+6. Web Dashboard (Optional)
+---------------------------
 Start the dashboard locally:
 
   python code/arpguard_web_dashboard.py --host 127.0.0.1 --port 5000
@@ -89,35 +107,25 @@ Then upload:
 
 7. Figures / Screenshots
 ------------------------
-This repository includes generated, self-contained figure assets in figures/.
-They are designed as safe placeholders and can be replaced by real screenshots from Wireshark/terminal output.
-
-To regenerate the included figures after generating PCAPs:
+This repository includes generated figure assets in figures/.
+To regenerate them:
 
   python scripts/generate_figures.py --pcaps-dir pcaps --out-dir figures
 
 8. Submission Notes (Canvas vs. GitHub)
-----------------------------------
-It is structured so that Canvas and GitHub submissions remain unambiguous:
+---------------------------------------
+- GitHub (public): hosts auxiliary/supporting artifacts (PCAPs, figures, runnable code, PDFs).
+- Canvas (LMS): upload only the file types the rubric permits (typically PDF/TXT). Do not upload ZIP archives.
 
-- GitHub (public): it hosts the full auxiliary package (scripts, PCAPs, figures, PDFs, and doc templates).
-- Canvas (LMS): it uploads only the files the rubric explicitly permits (typically PDF/TXT), without ZIP archives.
+Canvas-ready files:
+- The canvas_upload/ directory is a ready-to-upload bundle (after unzipping locally).
+  It contains .txt copies of the primary scripts, requirements.txt, and teaching-material PDFs.
 
-Canvas-ready files
+9. Troubleshooting
 ------------------
-The canvas_upload/ directory is a ready-to-upload bundle (after unzipping locally). It contains:
-- PDFs for the text materials (Project Overview, Lab Handout, Facilitator Notes, Quiz + Answer Key).
-- Plain-text copies of the primary Python scripts (arpguard_core.txt, arpguard_lab_tools.txt,
-  arpguard_web_dashboard.txt) and requirements.txt.
-
-Important rubric alignment
---------------------------
-- It does not submit ZIP archives to Canvas. If it is using a ZIP for transport, it unzips locally and uploads
-  the individual files.
-- If a GitHub/YouTube link is provided, it still follows the rubric’s rule that required materials must be
-  accessible to the grader without additional renaming or reconstruction.
-- If the project includes any video/audio, it submits the actual media file(s) to Canvas in the allowed formats,
-  rather than relying only on an external link.
+- ModuleNotFoundError: activate the virtual environment and run pip install -r requirements.txt.
+- Dashboard port in use: change --port (e.g., 5050).
+- File not found: run commands from repository root and verify paths.
 
 References
 ----------
