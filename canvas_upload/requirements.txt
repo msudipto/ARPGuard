@@ -2,6 +2,7 @@
 # Tested with Python 3.11+
 flask>=3.0.0
 matplotlib>=3.8.0
+ninja2
 
 # Optional:
 # scapy>=2.5.0   # If installed, ARPGuard can use Scapy's rdpcap, but it is not required.
